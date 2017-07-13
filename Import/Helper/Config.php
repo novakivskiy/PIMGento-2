@@ -93,6 +93,11 @@ class Config extends AbstractHelper
         }
 
         foreach ($stores as $store) {
+
+            if($store->getId()>0){
+                continue;
+            }
+
             $website = $this->storeManager->getWebsite($store->getWebsiteId());
 
             $channel = $website->getCode();
@@ -104,6 +109,7 @@ class Config extends AbstractHelper
             }
 
             $combine = array();
+
 
             foreach ($arrayKey as $key) {
                 switch ($key) {
