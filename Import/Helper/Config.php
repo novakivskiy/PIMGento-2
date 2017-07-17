@@ -71,7 +71,7 @@ class Config extends AbstractHelper
      * @param string|array $arrayKey
      * @return array
      */
-    public function getStores($arrayKey = 'store_id',$allStores = false)
+    public function getStores($arrayKey = 'store_id',$allStores = true)
     {
         $stores = $this->storeManager->getStores(true);
 
