@@ -785,7 +785,7 @@ class Import extends Factory
         $connection = $this->_entities->getResource()->getConnection();
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
-        $websites = $this->_helperConfig->getStores('website_id');
+        $websites = $this->_helperConfig->getStores('website_id',true);
 
         foreach ($websites as $websiteId => $affected) {
             if ($websiteId == 0) {
@@ -898,8 +898,8 @@ class Import extends Factory
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
         $stores = array_merge(
-            $this->_helperConfig->getStores(['lang']), // en_US
-            $this->_helperConfig->getStores(['lang', 'channel_code']) // en_US-channel
+            $this->_helperConfig->getStores(['lang'],true), // en_US
+            $this->_helperConfig->getStores(['lang', 'channel_code'],true) // en_US-channel
         );
 
         $this->_urlRewriteHelper->createUrlTmpTable();

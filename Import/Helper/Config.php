@@ -71,7 +71,7 @@ class Config extends AbstractHelper
      * @param string|array $arrayKey
      * @return array
      */
-    public function getStores($arrayKey = 'store_id')
+    public function getStores($arrayKey = 'store_id',$allStores = false)
     {
         $stores = $this->storeManager->getStores(true);
 
@@ -94,7 +94,7 @@ class Config extends AbstractHelper
 
         foreach ($stores as $store) {
 
-            if($store->getId()>0 && !in_array('website_id',$arrayKey)){
+            if($store->getId()>0 && !$allStores){
                 continue;
             }
 
