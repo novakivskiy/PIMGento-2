@@ -527,12 +527,12 @@ class Import extends Factory
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
         $stores = array_merge(
-            $this->_helperConfig->getStores(array('lang')), // en_US
-            $this->_helperConfig->getStores(array('lang', 'channel_code')), // en_US-channel
-            $this->_helperConfig->getStores(array('channel_code')), // channel
-            $this->_helperConfig->getStores(array('currency')), // USD
-            $this->_helperConfig->getStores(array('channel_code', 'currency')), // channel-USD
-            $this->_helperConfig->getStores(array('lang', 'channel_code', 'currency')) // en_US-channel-USD
+            $this->_helperConfig->getStores(array('lang'),false), // en_US
+            $this->_helperConfig->getStores(array('lang', 'channel_code'),false), // en_US-channel
+            $this->_helperConfig->getStores(array('channel_code'),false), // channel
+            $this->_helperConfig->getStores(array('currency'),false), // USD
+            $this->_helperConfig->getStores(array('channel_code', 'currency'),false), // channel-USD
+            $this->_helperConfig->getStores(array('lang', 'channel_code', 'currency'),false) // en_US-channel-USD
         );
 
         $columns = array_keys($connection->describeTable($tmpTable));
@@ -785,7 +785,7 @@ class Import extends Factory
         $connection = $this->_entities->getResource()->getConnection();
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
-        $websites = $this->_helperConfig->getStores('website_id',true);
+        $websites = $this->_helperConfig->getStores('website_id');
 
         foreach ($websites as $websiteId => $affected) {
             if ($websiteId == 0) {
@@ -898,8 +898,8 @@ class Import extends Factory
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
         $stores = array_merge(
-            $this->_helperConfig->getStores(['lang'],true), // en_US
-            $this->_helperConfig->getStores(['lang', 'channel_code'],true) // en_US-channel
+            $this->_helperConfig->getStores(['lang']), // en_US
+            $this->_helperConfig->getStores(['lang', 'channel_code']) // en_US-channel
         );
 
         $this->_urlRewriteHelper->createUrlTmpTable();
