@@ -94,7 +94,7 @@ class Config extends AbstractHelper
 
         foreach ($stores as $store) {
 
-            if($store->getId()>0){
+            if($store->getId()>0 && !in_array('website_id',$arrayKey)){
                 continue;
             }
 
