@@ -317,7 +317,7 @@ class Import extends Factory
             $this->getCode(), $connection->getTableName('catalog_category_entity'), $values, 3, 0, 2
         );
 
-        $stores = $this->_helperConfig->getStores('lang');
+        $stores = $this->_helperConfig->getStores('lang',false);
 
         foreach ($stores as $local => $affected) {
             if ($connection->tableColumnExists($tmpTable, 'label-' . $local)) {
