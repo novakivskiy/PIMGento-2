@@ -359,6 +359,9 @@ class Import extends Factory
 
         $stores = $this->_helperConfig->getStores('lang');
         $this->_urlRewriteHelper->createUrlTmpTable();
+
+        $isUpdateUrlKey = $this->_scopeConfig->getValue('pimgento/category/update_url_key');
+
         foreach ($stores as $local => $affected) {
 
             $column = '_url_rewrite-' . $local;
@@ -369,11 +372,13 @@ class Import extends Factory
                         continue;
                     }
 
+
                     $this->_urlRewriteHelper->rewriteUrls(
                         $this->getCode(),
                         $store['store_id'],
                         $column,
-                        $this->_scopeConfig->getValue('catalog/seo/category_url_suffix')
+                        $this->_scopeConfig->getValue('catalog/seo/category_url_suffix'),
+                        $isUpdateUrlKey
                     );
                 }
             }

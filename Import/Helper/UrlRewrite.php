@@ -84,7 +84,7 @@ class UrlRewrite extends AbstractHelper
      *
      * @return void
      */
-    public function rewriteUrls($code, $storeId, $column, $urlSuffix)
+    public function rewriteUrls($code, $storeId, $column, $urlSuffix,$isUpdateUrlKey = false)
     {
         $connection         = $this->_entities->getResource()->getConnection();
         $tmpTable           = $this->_entities->getTableName($code);
@@ -118,6 +118,11 @@ class UrlRewrite extends AbstractHelper
                 array()
             )
             ->where('`t`.`' . $column . '` <> ""');
+
+        if (!$isUpdateUrlKey) {
+            $select->where('_is_new = ?', 1);
+        }
+
 
         $connection->query(
             $query = $connection->insertFromSelect(
