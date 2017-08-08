@@ -854,6 +854,14 @@ class Import extends Factory
                 )
             );
 
+            $removeProductFromOldAkeneoCategories="DELETE cp FROM catalog_category_product  cp
+INNER JOIN pimgento_entities as pe ON pe.entity_id=cp.category_id AND pe.import='category'
+INNER JOIN tmp_pimgento_entities_product as p ON p._entity_id=cp.product_id
+WHERE NOT FIND_IN_SET(code,categories) AND pe.entity_id=cp.category_id AND p._entity_id=cp.product_id";
+            $connection->query(       $removeProductFromOldAkeneoCategories);
+
+
+
         }
     }
 
