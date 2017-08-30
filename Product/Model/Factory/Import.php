@@ -603,6 +603,11 @@ class Import extends Factory
         }
 
         foreach($values as $storeId => $data) {
+
+            if($storeId>0){
+                continue;
+            }
+
             $this->_entities->setValues(
                 $this->getCode(), $connection->getTableName('catalog_product_entity'), $data, 4, $storeId, 1
             );
@@ -938,21 +943,25 @@ WHERE NOT FIND_IN_SET(code,categories) AND pe.entity_id=cp.category_id AND p._en
                         );
                     }
                 }
-                
+
+
                 foreach ($affected as $store) {
+
+
+//                    if ($store['store_id'] > 0) {
+//                        $this->_entities->setValues(
+//                            $this->getCode(),
+//                            $connection->getTableName('catalog_product_entity'),
+//                            ['url_key' => $column],
+//                            4,
+//                            $store['store_id'],
+//                            1
+//                        );
+//                    }
 
                     if ($store['store_id'] == 0) {
                         continue;
                     }
-
-                    $this->_entities->setValues(
-                        $this->getCode(),
-                        $connection->getTableName('catalog_product_entity'),
-                        ['url_key' => $column],
-                        4,
-                        $store['store_id'],
-                        1
-                    );
 
                     $this->_urlRewriteHelper->rewriteUrls(
                         $this->getCode(),
@@ -963,7 +972,6 @@ WHERE NOT FIND_IN_SET(code,categories) AND pe.entity_id=cp.category_id AND p._en
                 }
             }
         }
-
         $this->_urlRewriteHelper->dropUrlRewriteTmpTable();
     }
 

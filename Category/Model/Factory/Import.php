@@ -315,6 +315,10 @@ class Import extends Factory
         foreach ($stores as $local => $affected) {
             if ($connection->tableColumnExists($tmpTable, 'label-' . $local)) {
                 foreach ($affected as $store) {
+                    if ($store['store_id'] > 0) {
+                        continue;
+                    }
+
                     $values = array(
                         'name'    => 'label-' . $local,
                         'url_key' => 'url_key-' . $local,
