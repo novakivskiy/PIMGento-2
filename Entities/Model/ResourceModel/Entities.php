@@ -11,15 +11,12 @@ use \Zend_Db_Expr as Expr;
 class Entities extends AbstractDb
 {
 
+    const IGNORE_VALUE = '!ignore!';
+
     /**
      * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     protected $_date;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $_scopeConfig;
 
     /**
      * Construct
@@ -28,17 +25,10 @@ class Entities extends AbstractDb
      * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param string|null $resourcePrefix
      */
-    public function __construct(
-        Context $context,
-        DateTime $date,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        $resourcePrefix = null
-    )
+    public function __construct(Context $context, DateTime $date, $resourcePrefix = null)
     {
         parent::__construct($context, $resourcePrefix);
         $this->_date = $date;
-        $this->_scopeConfig = $scopeConfig;
-
     }
 
     /**
@@ -162,6 +152,8 @@ class Entities extends AbstractDb
             'Is New'
         );
 
+        $table->setOption('type', 'MYISAM');
+
         $connection->createTable($table);
 
         return $this;
@@ -241,7 +233,7 @@ class Entities extends AbstractDb
             throw new \Exception(__("Unable to open %s.", $file));
         }
 
-        $columnNames = [];
+        $columnNames  = [];
         $columnValues = [];
         $rowCount = 0;
 
@@ -261,7 +253,7 @@ class Entities extends AbstractDb
             // Build column => value map for insert
             foreach ($csvLine as $key => $value) {
                 if (!array_key_exists($key, $columnNames)) {
-                    throw new \Exception('The line #' . $rowCount . ' has too many columns');
+                    throw new \Exception('The line #'.$rowCount.' has too many columns');
                 }
 
                 $columnValues[$rowCount][$columnNames[$key]] = $value;
@@ -302,8 +294,8 @@ class Entities extends AbstractDb
 
         $connection->delete($tableName, array($pimKey . ' = ?' => ''));
 
-        $pimgentoTable = $connection->getTableName('pimgento_entities');
-        $entityTable = $connection->getTableName($entityTable);
+        $pimgentoTable = $this->getTable('pimgento_entities');
+        $entityTable   = $this->getTable($entityTable);
 
         if ($entityKey == 'entity_id') {
             $entityKey = $this->getColumnIdentifier($entityTable);
@@ -326,7 +318,7 @@ class Entities extends AbstractDb
         $connection->query('SET @id = ' . (int)$row['Auto_increment']);
         $values = array(
             '_entity_id' => new Expr('@id := @id + 1'),
-            '_is_new' => new Expr('1'),
+            '_is_new'    => new Expr('1'),
         );
         $connection->update($tableName, $values, '_entity_id IS NULL');
 
@@ -335,9 +327,9 @@ class Entities extends AbstractDb
             ->from(
                 $tableName,
                 array(
-                    'import' => new Expr("'" . $import . "'"),
-                    'code' => $prefix ? new Expr('CONCAT(`' . $prefix . '`, "_", `' . $pimKey . '`)') : $pimKey,
-                    'entity_id' => '_entity_id'
+                    'import'     => new Expr("'" . $import . "'"),
+                    'code'       => $prefix ? new Expr('CONCAT(`' . $prefix . '`, "_", `' . $pimKey . '`)') : $pimKey,
+                    'entity_id'  => '_entity_id'
                 )
             )->where('_is_new = ?', 1);
 
@@ -373,17 +365,15 @@ class Entities extends AbstractDb
      *
      * @param string $tableName
      * @param string $entityTable
-     * @param array $values
-     * @param int $entityTypeId
-     * @param int $storeId
-     * @param int $mode
+     * @param array  $values
+     * @param int    $entityTypeId
+     * @param int    $storeId
+     * @param int    $mode
      * @return $this
      */
     public function setValues($tableName, $entityTable, $values, $entityTypeId, $storeId, $mode = 1)
     {
         $connection = $this->getConnection();
-
-        $isUpdateUrlKeyCategory = $this->_scopeConfig->getValue('pimgento/category/update_url_key');
 
         foreach ($values as $code => $value) {
             if (($attribute = $this->getAttribute($code, $entityTypeId))) {
@@ -392,9 +382,10 @@ class Entities extends AbstractDb
 
                     $identifier = $this->getColumnIdentifier($entityTable . '_' . $backendType);
 
+                    $columnName = $value;
+                    $columnExists = $connection->tableColumnExists($tableName, $value);
 
-                    $existColumn = $connection->tableColumnExists($tableName, $value);
-                    if ($existColumn) {
+                    if ($columnExists) {
                         $value = new Expr('IF(`' . $value . '` <> "", `' . $value . '`, NULL)');
                     }
 
@@ -402,25 +393,23 @@ class Entities extends AbstractDb
                         ->from(
                             $tableName,
                             array(
-                                'attribute_id' => new Expr($attribute['attribute_id']),
-                                'store_id' => new Expr($storeId),
-                                $identifier => '_entity_id',
-                                'value' => $value,
+                                'attribute_id'   => new Expr($attribute['attribute_id']),
+                                'store_id'       => new Expr($storeId),
+                                $identifier      => '_entity_id',
+                                'value'          => $value,
                             )
                         );
 
-                    // todo config pimgento/category/update_url_key  applied  to product and category
-                    if (($code == 'url_key' || $code=='url_path') && !$isUpdateUrlKeyCategory) {
-                        $select->where('_is_new = ?', 1);
+                    if ($columnExists) {
+                        $select->where('`' . $columnName . '` <> ?', self::IGNORE_VALUE);
                     }
 
                     $insert = $connection->insertFromSelect(
                         $select,
-                        $connection->getTableName($entityTable . '_' . $backendType),
+                        $this->getTable($entityTable . '_' . $backendType),
                         array('attribute_id', 'store_id', $identifier, 'value'),
                         $mode
                     );
-
                     $connection->query($insert);
 
                     if ($attribute['backend_type'] == 'datetime') {
@@ -431,7 +420,7 @@ class Entities extends AbstractDb
                             'value = ?' => '0000-00-00 00:00:00'
                         );
                         $connection->update(
-                            $connection->getTableName($entityTable . '_' . $backendType), $values, $where
+                            $this->getTable($entityTable . '_' . $backendType), $values, $where
                         );
                     }
                 }
@@ -467,7 +456,7 @@ class Entities extends AbstractDb
      * Retrieve attribute
      *
      * @param string $code
-     * @param int $entityTypeId
+     * @param int    $entityTypeId
      * @return bool|array
      */
     public function getAttribute($code, $entityTypeId)
@@ -476,7 +465,7 @@ class Entities extends AbstractDb
 
         $attribute = $connection->fetchRow(
             $connection->select()
-                ->from($connection->getTableName('eav_attribute'), array('attribute_id', 'backend_type'))
+                ->from($this->getTable('eav_attribute'), array('attribute_id', 'backend_type'))
                 ->where('entity_type_id = ?', $entityTypeId)
                 ->where('attribute_code = ?', $code)
                 ->limit(1)
