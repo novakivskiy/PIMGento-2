@@ -819,6 +819,7 @@ class Import extends Factory
      */
     public function setCategories()
     {
+        $resource = $this->_entities->getResource();
         $connection = $this->_entities->getResource()->getConnection();
         $tmpTable = $this->_entities->getTableName($this->getCode());
 
@@ -859,14 +860,30 @@ class Import extends Factory
                 )
             );
 
-            $removeProductFromOldAkeneoCategories="DELETE cp FROM catalog_category_product  cp
-INNER JOIN pimgento_entities as pe ON pe.entity_id=cp.category_id AND pe.import='category'
-INNER JOIN tmp_pimgento_entities_product as p ON p._entity_id=cp.product_id
-WHERE NOT FIND_IN_SET(code,categories) AND pe.entity_id=cp.category_id AND p._entity_id=cp.product_id";
-            $connection->query(       $removeProductFromOldAkeneoCategories);
+            //Remove product from old categories
+            $selectToDelete = $connection->select()
+                ->from(
+                    array(
+                        'c' => $resource->getTable('pimgento_entities')
+                    ),
+                    array()
+                )
+                ->joinInner(
+                    array('p' => $tmpTable),
+                    '!FIND_IN_SET(`c`.`code`, `p`.`categories`) AND `c`.`import` = "category"',
+                    array(
+                        'category_id' => 'c.entity_id',
+                        'product_id'  => 'p._entity_id'
+                    )
+                )
+                ->joinInner(
+                    array('e' => $resource->getTable('catalog_category_entity')),
+                    'c.entity_id = e.entity_id',
+                    array()
+                );
 
-
-
+            $connection->delete($resource->getTable('catalog_category_product'),
+                '(category_id, product_id) IN (' . $selectToDelete->assemble() . ')');
         }
     }
 
