@@ -139,6 +139,9 @@ class Import extends Factory
         foreach ($stores as $local => $data) {
             if ($connection->tableColumnExists($tmpTable, 'label-' . $local)) {
                 foreach ($data as $store) {
+                    if($store['store_id']>0){
+                        continue;
+                    }
                     $options = $connection->select()
                         ->from(
                             $tmpTable,

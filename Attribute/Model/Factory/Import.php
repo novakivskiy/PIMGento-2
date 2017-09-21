@@ -256,12 +256,12 @@ class Import extends Factory
 
             /* Retrieve attribute scope */
             $global = 1; // Global
-            if ($row['scopable'] == 1) {
-                $global = 2; // Website
-            }
-            if ($row['localizable'] == 1) {
-                $global = 0; // Store View
-            }
+//            if ($row['scopable'] == 1) {
+//                $global = 2; // Website
+//            }
+//            if ($row['localizable'] == 1) {
+//                $global = 0; // Store View
+//            }
 
             $data = [
                 'entity_type_id' => $this->getEntityTypeId(),
